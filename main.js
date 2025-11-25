@@ -488,13 +488,23 @@ function animate() {
                 tz = bgStartPositions[iz];
             }
 
-            const driftX = Math.sin(time * 0.1 + i) * 1.5;
-            const driftY = Math.cos(time * 0.15 + i) * 1.5;
+            // --- Spatial Flow Field Effect ---
+            // Calculate a flow vector based on position and time for a fluid drift
+            // Use coordinate-based phases to make neighbors move similarly
+            const flowScale = 0.05; // Scale of the noise field
+            const flowSpeed = 0.2;  // Speed of the current
+            const flowAmp = 2.0;    // Magnitude of drift
+
+            // Using target positions for phase ensures coherence even as they move
+            const driftX = Math.sin(time * flowSpeed + ty * flowScale) * flowAmp;
+            const driftY = Math.cos(time * flowSpeed * 0.8 + tz * flowScale) * flowAmp;
+            const driftZ = Math.sin(time * flowSpeed * 1.2 + tx * flowScale) * flowAmp;
+
             const k = 0.01; 
             
             bgPosAttr.array[ix] += (tx + driftX - bgPosAttr.array[ix]) * k;
             bgPosAttr.array[iy] += (ty + driftY - bgPosAttr.array[iy]) * k;
-            bgPosAttr.array[iz] += (tz - bgPosAttr.array[iz]) * k;
+            bgPosAttr.array[iz] += (tz + driftZ - bgPosAttr.array[iz]) * k;
         }
         bgPosAttr.needsUpdate = true;
     }
