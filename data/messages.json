@@ -1,10 +1,10 @@
 {
-  "title": "Un cielo lleno de vos",
-  "subtitle": "¡¡¡TODOS CONTIGO!!!",
+  "title": "¡¡¡TODOS CONTIGO!!!",
+  "subtitle": "¿Quieres ver más? (ese el botón)",
   "finalPhrase": "Esta semana marca un nuevo comienzo lleno de esperanza.",
   "messages": [
     {
-      "name": "Javier González Castaño",
+      "name": "Javier González",
       "text": "Hola Sandra! Te mandamos un abrazo fuerte y mucha fuerza desde Canarias! VAS A GANAR LA BATALLA!!",
       "tone": "fuerza"
     },
@@ -15,16 +15,16 @@
     },
     {
       "name": "Vicky Hernández",
-      "text": "Nena, creo que ya nos lo hemos dicho todo pero por si hay dudas aún...... LO VAS A CONSEGUIR, ERES MUY FUERTE Y VALIENTE y recuerda, las navidades del 2027 estaremos recordando este momento. Contando los días para esa visita a BCN. Te quiero!!! A por todas!!!!!",
+      "text": "Nena, creo que ya nos lo hemos dicho todo pero por si hay dudas aún...... LO VAS A CONSEGUIR, ERES MUY FUERTE Y VALIENTE y recuerda, las navidades del 2026 estaremos recordando este momento. Contando los días para esa visita a BCN. Te quiero!!! A por todas!!!!!",
       "tone": "fuerza"
     },
     {
-      "name": "Simon",
+      "name": "Simon Yagas",
       "text": "Sandra, estamos todos haciendo mucha fuerza por vos. Sabemos lo enorme que viene siendo esta batalla y lo admirable que es cómo la estás enfrentando. Ahora arranca una etapa nueva en Barcelona, y ojalá el trasplante sea ese empujón que te acerque cada vez más a estar bien.\n\nQuedate tranquila que no estás sola: todo el equipo te banca, te piensa y te acompaña desde acá. Tenés un montón de gente tirándote buena energía y esperando verte volver con toda la fuerza que te caracteriza.\n\nMucho ánimo, de verdad. Pasito a pasito, ya falta menos. Un abrazo enorme",
       "tone": "calma"
     },
     {
-      "name": "IVÁN OLIVER",
+      "name": "Iván Oliver",
       "text": "Desde el departamento de PRL, enviarte muchos ánimos y mucha fuerza en este camino. Deseamos que todo salga bien y que te vaya muy bonito. Un fuerte abrazo.",
       "tone": "calma"
     },
@@ -54,12 +54,12 @@
       "tone": "cariño"
     },
     {
-      "name": "Yaiza",
+      "name": "Yaiza Caballero",
       "text": "Cuento las horas para volver a reír contigo en la oficina, para tomar un café en la cantina, o simplemente para recordar nuestro pasado glorioso en aquellas empresas que nos prometieron un futuro prometedor con recursos invisibles, besugos uniformados, horas infinitas...pero que sin saberlo, hoy les podemos dar las GRACIAS por haberse convertido en ese nexo que ha permitido conocernos. Ya no queda nada...estás en la recta final. Eres una ganadora, una MUJERONA, toda mi fuerza para ti. Con mucho cariño Yaiza.",
       "tone": "humor"
     },
     {
-      "name": "Rosana",
+      "name": "Rosana Moragues",
       "text": "Muchísimo Ánimo! Estamos todos aquí apoyándote para darte toda la fuerza del mundo! Recupérate y vuelve pronto que te echamos de menos",
       "tone": "cariño"
     },
@@ -69,12 +69,12 @@
       "tone": "humor"
     },
     {
-      "name": "Daniela",
+      "name": "Daniela Ruiz",
       "text": "Sandra:\n\nHoy quiero enviarte mucha energía positiva y un abrazo enorme. Deseo que esto pase pronto para volver a verte por la oficina, tan radiante e iluminada como siempre. Te mando mucho ánimo y los mejores deseos para tu pronta recuperación.\n\nCuidate mucho y aquí estamos esperándote =)",
       "tone": "calma"
     },
     {
-      "name": "Mercedes",
+      "name": "Mercedes Biaget",
       "text": "Sandrita, ¡ya queda menos para que estés a tope!\nTe echamos de menos INFINITO\nUn besote muy muy muy fuerte",
       "tone": "cariño"
     },
@@ -84,12 +84,12 @@
       "tone": "fuerza"
     },
     {
-      "name": "Neus",
+      "name": "Neus Bennassar",
       "text": "Molts d'ànims Sandra, t'enviam tota la nostra energia i força, sabem que tot anirà bé. Una aferrada enorme i beso molt molt molt fort!",
       "tone": "cariño"
     },
     {
-      "name": "Leyre",
+      "name": "Leyre Vera",
       "text": "Un abrazo muy grande Sandra; estoy segura de que nos veremos muy prontito por la ofi :)",
       "tone": "calma"
     },
@@ -104,12 +104,12 @@
       "tone": "calma"
     },
     {
-      "name": "Loileth",
+      "name": "Loileth Fernandez",
       "text": "Amiga, mis mejores deseos para esta fase de tratamiento. Estamos seguros que estarás de vuelta pronto!!! Pon toda tu fuerza en tu recuperación!!!!! Un abrazo grande!!!",
       "tone": "fuerza"
     },
     {
-      "name": "Silvia Cazorla Reche",
+      "name": "Silvia Cazorla",
       "text": "Hola bonita! Te envío todo mi cariño y mucha energía positiva para que empieces el tratamiento en Barcelona cargada de buenas vibraciones. Será un camino duro, pero tienes que ser muy fuerte y enfocarte en el resultado. Estoy segura de que te va a ir fenomenal y que dentro de unos meses estaremos celebrando tu recuperación. ¡Mucho ánimo bombón! Te envío un fortísimo abrazo, Silvia Cazorla",
       "tone": "cariño"
     },
@@ -124,17 +124,17 @@
       "tone": "humor"
     },
     {
-      "name": "Vero",
+      "name": "Vero Levy",
       "text": "Vamos, campeona! Que si hay alguien que puede con esto eres tú! Te admiramos y te enviamos todas las fuerzas del universo para que estés pronto de vuelta.",
       "tone": "fuerza"
     },
     {
-      "name": "Mª Jesús",
+      "name": "Mª Jesús Rejon",
       "text": "Hola Sandra! Te mando toda mi energía positiva, estamos contigo en cada paso! Un abrazo fuerte",
       "tone": "calma"
     },
     {
-      "name": "MAR VINENT",
+      "name": "Mar Vinent",
       "text": "No conec persona amb més força que TU! Cap endavant i amb més força que mai!!!! Vendrem molt prest a BCN a estar amb tu!!! T'estimam i t'enyoram cada dia.",
       "tone": "cariño"
     },
@@ -149,7 +149,7 @@
       "tone": "calma"
     },
     {
-      "name": "Merian",
+      "name": "Merian Vivancos",
       "text": "Querida Sandra 💛\n\nQuiero que sepas que estoy pensando mucho en ti en esta etapa tan importante. 💪✨ Sé que eres fuerte y valiente, y estoy segura de que vas a superar esta batalla.\nTe envío todo mi cariño, energía positiva y abrazos virtuales para que este trasplante sea un éxito y pronto estés recuperada. 💖🤗\n\n¡Mucho ánimo y espero verte pronto! 💛",
       "tone": "cariño"
     },
@@ -159,7 +159,7 @@
       "tone": "calma"
     },
     {
-      "name": "Patri",
+      "name": "Patri Muñoz",
       "text": "Querida Sandra, ¡Te echo de menos! Todo mi amor y luz para este siguiente reto, volveremos a viajar juntas, comentar libros y reirnos. ¡¡Un abrazo gigante!!",
       "tone": "humor"
     },
@@ -169,24 +169,25 @@
       "tone": "fuerza"
     },
     {
-      "name": "Lisa",
+      "name": "Lisa Laliscia",
       "text": "Sandra! A por ello! Mucho es lo recorrido y ahora el gran paso! Te mandamos todo el apoyo y la fuerza! Estás muy presente por aquí, te esperamos de vuelta! Un fuerte abrazo lleno de cariño!",
       "tone": "fuerza"
     },
     {
-      "name": "Eva Z.",
+      "name": "Eva Zofkova",
       "text": "Querido Sandra, deseando que pronto te encuentres mucho mejor. Estaré pensando en ti, acompañándote desde la distancia y enviándote mucha energía de la buena.\n\n Un abrazo grande, lleno de fuerza y cariño ♥",
       "tone": "cariño"
     },
     {
-      "name": "Marian",
+      "name": "Marian Camps",
       "text": "Sandra!! Te mando todo mi cariño y fuerza!! Antes de lo que pensamos volveremos a reírnos juntas!! Te esperamos con los brazos abiertos! ",
       "tone": "cariño"
     },
     {
-      "name": "Inés",
+      "name": "Inés Entrena",
       "text": "A mi querida Sandra:\n\nMis pensamientos están contigo en estos momentos. Para ti mucha fuerza, energía y ánimo en este proceso que inicias.\n\nSé que va a ser duro pero, ¿sabes qué? No estás en buenas manos, estás en las mejores, y rodeada de gente que te quiere y te aprecia.\n\nAunque el cielo esté gris y la lluvia aparezca ahora, espero que recuerdes siempre que por encima de esas nubes, el sol sigue brillando con la misma fuerza de siempre, y que una luz cálida te está pacientemente esperando a que cruces las nubes para encontrarte con él.\n\nVas a atravesar esa tormenta y, es más, no lo harás sola. Seguiremos caminando contigo hasta llegar al sol.\n\nTe mando un abrazo gigante.",
       "tone": "calma"
     }
   ]
 }
+
