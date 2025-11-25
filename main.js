@@ -6,7 +6,8 @@ const state = {
     messages: [], // Will hold JSON data
     openedCount: 0,
     openedIndices: new Set(),
-    hoveredIndex: null
+    hoveredIndex: null,
+    currentMsgIndex: -1 // Track the currently open message
 };
 
 // --- DOM Elements ---
@@ -18,6 +19,8 @@ const dom = {
     msgName: document.getElementById('msg-name'),
     msgText: document.getElementById('msg-text'),
     btnClose: document.getElementById('btn-close'),
+    btnNext: document.getElementById('btn-next'),
+    btnPrev: document.getElementById('btn-prev'),
     hint: document.getElementById('interaction-hint'),
     footerNotif: document.getElementById('footer-notification'),
     footerText: document.getElementById('footer-text'),
@@ -245,6 +248,10 @@ async function init() {
     window.addEventListener('click', onClick);
     dom.btnOpen.addEventListener('click', openSky);
     dom.btnClose.addEventListener('click', closeMessage);
+    
+    // Navigation Listeners
+    dom.btnNext.addEventListener('click', onNext);
+    dom.btnPrev.addEventListener('click', onPrev);
 
     animate();
 }
@@ -264,7 +271,39 @@ function openSky() {
 function closeMessage() {
     dom.msgOverlay.classList.replace('visible', 'hidden');
     highlightSphere.visible = false;
+    state.currentMsgIndex = -1;
 }
+
+function onNext() {
+    if(state.currentMsgIndex === -1) return;
+    const nextIndex = (state.currentMsgIndex + 1) % state.messages.length;
+    navigateToMessage(nextIndex);
+}
+
+function onPrev() {
+    if(state.currentMsgIndex === -1) return;
+    let prevIndex = state.currentMsgIndex - 1;
+    if (prevIndex < 0) prevIndex = state.messages.length - 1;
+    navigateToMessage(prevIndex);
+}
+
+// Navigates and calculates 3D position manually since we don't have a raycast click
+function navigateToMessage(index) {
+    // Get target position for this index
+    const ix = index * 3;
+    const iy = index * 3 + 1;
+    const iz = index * 3 + 2;
+    
+    // Position of the star when formed (heart shape)
+    const pos = new THREE.Vector3(
+        msgTargetPositions[ix],
+        msgTargetPositions[iy],
+        msgTargetPositions[iz]
+    );
+
+    showMessage(index, pos);
+}
+
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -307,12 +346,14 @@ function onClick(event) {
 }
 
 function showMessage(index, position) {
+    state.currentMsgIndex = index;
     const msg = state.messages[index];
     
     dom.msgName.textContent = msg.name;
     dom.msgText.textContent = msg.text;
     dom.msgOverlay.classList.replace('hidden', 'visible');
     
+    // Update highlight position
     highlightSphere.position.copy(position);
     highlightSphere.visible = true;
 

@@ -113,7 +113,7 @@ button {
     border-radius: 50px;
     padding: 12px 32px;
     font-size: 1rem;
-    transition: transform 0.2s, opacity 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s;
 }
 
 button:active {
@@ -132,18 +132,50 @@ button:active {
     box-shadow: 0 0 25px rgba(167, 139, 250, 0.6);
 }
 
+/* Nav Controls Container */
+.nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    width: 100%;
+    gap: 10px;
+}
+
 .btn-secondary {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    margin-top: 1.5rem;
     padding: 8px 24px;
     font-size: 0.9rem;
-    align-self: center;
+    flex-grow: 1; /* Occupy remaining space */
+    max-width: 120px;
 }
 
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-nav {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0f2fe;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-nav:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.btn-nav:active {
+    transform: scale(0.9);
 }
 
 /* Visibility Utilities */
