@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Un cielo lleno de vos</title>
+    
+    <!-- Google Fonts: Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="./styles.css">
+
+    <!-- Import Map for Three.js (No bundlers required) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+
+    <!-- 3D Scene Container -->
+    <canvas id="canvas"></canvas>
+
+    <!-- UI Layer -->
+    <div id="ui-container">
+        
+        <!-- Intro Screen -->
+        <section id="intro-panel" class="panel visible">
+            <h1 class="title">Un cielo lleno de vos</h1>
+            <p class="subtitle">Mensajes de todo el equipo para vos, Sandra.</p>
+            <p class="instruction">Te enviamos toda nuestra energía a través de este cielo.</p>
+            <button id="btn-open" class="btn-primary">Abrir el cielo</button>
+        </section>
+
+        <!-- Message Overlay (Hidden by default) -->
+        <section id="message-overlay" class="overlay hidden">
+            <div class="card">
+                <h2 id="msg-name">Nombre</h2>
+                <div class="scroll-content">
+                    <p id="msg-text">Mensaje...</p>
+                </div>
+                <button id="btn-close" class="btn-secondary">Cerrar</button>
+            </div>
+        </section>
+
+        <!-- Footer / Notification area -->
+        <div id="footer-notification" class="notification hidden">
+            <p id="footer-text"></p>
+        </div>
+
+        <!-- Small hint for interaction -->
+        <div id="interaction-hint" class="hint hidden">
+            Tocá una estrella para leer un mensaje
+        </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
