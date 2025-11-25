@@ -29,7 +29,7 @@ scene.background = new THREE.Color(0x020617);
 scene.fog = new THREE.FogExp2(0x020617, 0.02);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.z = 25;
+camera.position.z = 30; // Moved back slightly to see more of the field
 
 const renderer = new THREE.WebGLRenderer({ canvas: dom.canvas, antialias: true, alpha: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,7 +37,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Raycaster for interaction
 const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.5; // Easier to click particles
+// Increased threshold significantly to make clicking easier
+raycaster.params.Points.threshold = 1.0; 
 const pointer = new THREE.Vector2();
 
 // --- Objects ---
@@ -46,28 +47,29 @@ let geometry;
 let highlightSphere;
 
 // Animation/Transition variables
-const PARTICLE_COUNT = 2500; // Total stars (messages + fillers)
+const PARTICLE_COUNT = 3000; // Increased count for a fuller sky
 const positions = [];
 const targetPositions = []; // The heart shape
 const startPositions = []; // The random sphere
 const colors = [];
-const sizes = [];
-const opacities = []; // To fade in non-message stars differently
+const sizes = []; // Stored but unused by standard material without shader mod, used for fallback logic
 
 // --- Utility Functions ---
 
-// Generate a soft circular texture for particles
+// Generate a brighter, more solid circular texture for particles
 function createStarTexture() {
     const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
+    canvas.width = 64; // Higher res
+    canvas.height = 64;
     const context = canvas.getContext('2d');
-    const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.5)');
+    const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+    // Brighter core
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); 
+    gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.9)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
     context.fillStyle = gradient;
-    context.fillRect(0, 0, 32, 32);
+    context.fillRect(0, 0, 64, 64);
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
 }
@@ -98,29 +100,30 @@ async function init() {
     // 1. Load Data
     try {
         const response = await fetch('./data/messages.json');
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         state.messages = data.messages;
         state.finalPhrase = data.finalPhrase;
     } catch (error) {
-        console.error("Could not load messages", error);
-        // Fallback dummy data if fetch fails
+        console.warn("Could not load messages (local file system? cors?). Using dummy data.", error);
+        // Fallback data so the app still works if fetch fails
         state.messages = [
-            {name: "Sistema", text: "Error cargando mensajes. Pero te queremos igual.", tone: "fuerza"}
+            {name: "Sandra", text: "¡Eres fuerte y valiente! (Mensaje de prueba si no carga el archivo)", tone: "fuerza"},
+            {name: "Equipo", text: "Estamos contigo.", tone: "cariño"},
+            {name: "Amigos", text: "Todo saldrá bien.", tone: "calma"}
         ];
     }
 
     // 2. Setup Geometry
     geometry = new THREE.BufferGeometry();
-    
-    // We create more particles than messages to make the sky full
-    // The first N particles correspond to messages. The rest are filler.
     const messageCount = state.messages.length;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         // --- Position Setup ---
         
         // Initial: Random sphere distribution
-        const r = 15 + Math.random() * 20;
+        // Reduced radius slightly so they are closer to camera initially
+        const r = 10 + Math.random() * 25; 
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         
@@ -136,18 +139,14 @@ async function init() {
         
         if (i < messageCount) {
             // It's a message particle -> Place on heart outline
-            // Distribute evenly along the parametric curve
             const t = (i / messageCount) * Math.PI * 2;
             const vec = getHeartPosition(t);
-            // Add a little jitter so they aren't perfectly linear
             tx = vec.x + (Math.random() - 0.5) * 0.5;
             ty = vec.y + (Math.random() - 0.5) * 0.5;
             tz = vec.z;
         } else {
-            // Filler particle -> Random cloud around the heart
-            // Use rejection sampling or just a gaussian blob
+            // Filler particle
             const t = Math.random() * Math.PI * 2;
-            // A looser, bigger heart-ish cloud
             const vec = getHeartPosition(t, 0.4 + Math.random() * 0.2); 
             tx = vec.x * 1.5 + (Math.random() - 0.5) * 10;
             ty = vec.y * 1.5 + (Math.random() - 0.5) * 10;
@@ -155,38 +154,32 @@ async function init() {
         }
         targetPositions.push(tx, ty, tz);
 
-        // --- Color & Size Setup ---
+        // --- Color Setup ---
         let color = new THREE.Color(0xffffff);
-        let size = 0.15;
         
         if (i < messageCount) {
-            // Assign tone color from data
-            // If data doesn't have tone, pick random
             const msg = state.messages[i];
-            const tone = msg.tone || ['cariño', 'fuerza', 'calma'][Math.floor(Math.random()*3)];
+            const tone = msg.tone || 'cariño';
             color = getColorForTone(tone);
-            size = 0.4 + Math.random() * 0.2; // Messages are bigger
         } else {
-            // Background stars are dimmer
-            size = 0.1 + Math.random() * 0.15;
-            color.setHSL(0.6, 0.2, 0.5 + Math.random() * 0.5); // Bluish whites
+            // Background stars
+            color.setHSL(0.6, 0.2, 0.5 + Math.random() * 0.5); 
         }
 
         colors.push(color.r, color.g, color.b);
-        sizes.push(size);
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
     
-    // Custom shader material for better looking points with size attenuation
+    // Standard PointsMaterial
+    // Increased size and opacity to ensure visibility
     const material = new THREE.PointsMaterial({
-        size: 0.5,
+        size: 1.2, // Much bigger default size
         vertexColors: true,
         map: createStarTexture(),
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         sizeAttenuation: true
@@ -196,13 +189,12 @@ async function init() {
     scene.add(particles);
 
     // 3. Highlight Sphere (for selection)
-    const sphereGeo = new THREE.SphereGeometry(0.3, 16, 16);
+    const sphereGeo = new THREE.SphereGeometry(0.5, 16, 16); // Slightly bigger highlight
     const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     highlightSphere = new THREE.Mesh(sphereGeo, sphereMat);
     highlightSphere.visible = false;
     scene.add(highlightSphere);
     
-    // Add a point light to the highlighted area to make it glow
     const light = new THREE.PointLight(0xffffff, 2, 10);
     highlightSphere.add(light);
 
@@ -241,7 +233,6 @@ function onWindowResize() {
 }
 
 function onPointerMove(event) {
-    // Normalize coordinates -1 to 1
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
@@ -249,16 +240,13 @@ function onPointerMove(event) {
 function onClick(event) {
     if (!state.isFormed) return;
     
-    // Check if we clicked the canvas (and not UI)
     if (event.target !== dom.canvas) return;
 
     raycaster.setFromCamera(pointer, camera);
     const intersects = raycaster.intersectObject(particles);
 
     if (intersects.length > 0) {
-        // Find the closest point that corresponds to a message
-        // Since points are sorted by distance to ray, loop until we find a valid message index
-        const hit = intersects[0]; // Simplification: just take first hit
+        const hit = intersects[0];
         const index = hit.index;
 
         if (index < state.messages.length) {
@@ -270,27 +258,21 @@ function onClick(event) {
 function showMessage(index, position) {
     const msg = state.messages[index];
     
-    // Update UI
     dom.msgName.textContent = msg.name;
     dom.msgText.textContent = msg.text;
     dom.msgOverlay.classList.replace('hidden', 'visible');
     
-    // Update Scene
     highlightSphere.position.copy(position);
     highlightSphere.visible = true;
 
-    // Logic: Track progress
     if (!state.openedIndices.has(index)) {
         state.openedIndices.add(index);
         state.openedCount++;
         
-        // Trigger final phrase if enough read
         if (state.openedCount === 10 && state.finalPhrase) {
             dom.footerText.textContent = state.finalPhrase;
             dom.footerNotif.classList.replace('hidden', 'visible');
-            
-            // Brighten stars slightly
-            particles.material.size *= 1.2;
+            particles.material.size *= 1.2; // Brighter celebration
         }
     }
 }
@@ -303,12 +285,11 @@ function animate() {
     const time = Date.now() * 0.001;
     const positionsAttribute = geometry.attributes.position;
     
-    // Gentle rotation of the whole cloud
-    particles.rotation.y += 0.0005;
+    // Rotation
+    particles.rotation.y += 0.0008;
     if (!state.isFormed) {
-        particles.rotation.x = Math.sin(time * 0.2) * 0.1;
+        particles.rotation.x = Math.sin(time * 0.1) * 0.05;
     } else {
-        // Stabilize rotation x when formed
         particles.rotation.x = THREE.MathUtils.lerp(particles.rotation.x, 0, 0.05);
     }
 
@@ -320,19 +301,16 @@ function animate() {
         let targetX, targetY, targetZ;
 
         if (state.isFormed) {
-            // Move towards heart shape
             targetX = targetPositions[ix];
             targetY = targetPositions[iy];
             targetZ = targetPositions[iz];
         } else {
-            // Drift around initial positions
+            // Idle float
             targetX = startPositions[ix] + Math.sin(time + i) * 0.5;
             targetY = startPositions[iy] + Math.cos(time + i * 0.5) * 0.5;
             targetZ = startPositions[iz] + Math.sin(time * 0.5 + i) * 0.5;
         }
 
-        // Linear interpolation for smooth movement
-        // We use a varied lerp factor for organic feel (not everyone moves at same speed)
         const lerpFactor = state.isFormed ? 0.03 + (i % 5) * 0.005 : 0.05;
 
         positionsAttribute.array[ix] += (targetX - positionsAttribute.array[ix]) * lerpFactor;
