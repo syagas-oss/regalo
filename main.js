@@ -128,7 +128,8 @@ function getColorForTone(tone) {
 async function init() {
     // 1. Load Data
     try {
-        const response = await fetch('./data/messages.json');
+        // Appended ?v=2 to force cache refresh
+        const response = await fetch('./data/messages.json?v=2');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         state.messages = data.messages;
