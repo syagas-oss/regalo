@@ -32,31 +32,34 @@ scene.background = new THREE.Color(0x020617);
 scene.fog = new THREE.FogExp2(0x020617, 0.02);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.z = 25; // Closer for better visibility
+camera.position.z = 25; 
 
 const renderer = new THREE.WebGLRenderer({ canvas: dom.canvas, antialias: true, alpha: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
+// Limit Pixel Ratio for performance on high-res mobile screens
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// Raycaster for interaction
+// Raycaster
 const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 1.0; // Slightly larger for better mobile tap
+raycaster.params.Points.threshold = 1.5; // Slightly larger for better mobile tap
 const pointer = new THREE.Vector2();
 
 // --- Objects ---
-// separate systems for interactive vs decorative stars
 let msgParticles, bgParticles; 
 let msgGeometry, bgGeometry;
-let highlightSphere;
+let highlightSphere; // The selected star glow
+let hoverStar;       // The hover effect glow
 
-// Animation/Transition variables
-const TOTAL_PARTICLES = 2500; 
-// Arrays for Message Stars
+// Performance Check
+const isMobile = window.innerWidth < 768;
+const TOTAL_PARTICLES = isMobile ? 1500 : 2500; // Reduce particles on mobile
+
+// Arrays 
 const msgPositions = [];
 const msgTargetPositions = [];
 const msgStartPositions = [];
 const msgColors = [];
-// Arrays for Background Stars
+// Background Arrays
 const bgPositions = [];
 const bgTargetPositions = [];
 const bgStartPositions = [];
@@ -64,16 +67,15 @@ const bgColors = [];
 
 // --- Utility Functions ---
 
-// Texture for Message Stars (Bigger, Solid Core)
 function createMessageStarTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
     
-    // Solid white core for visibility
+    // Solid white core
     ctx.beginPath();
-    ctx.arc(32, 32, 12, 0, Math.PI * 2); // Slightly smaller core for elegance
+    ctx.arc(32, 32, 12, 0, Math.PI * 2); 
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
@@ -89,7 +91,6 @@ function createMessageStarTexture() {
     return new THREE.CanvasTexture(canvas);
 }
 
-// Texture for Background Stars (Softer, Fainter)
 function createBgStarTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 32;
@@ -105,7 +106,6 @@ function createBgStarTexture() {
     return new THREE.CanvasTexture(canvas);
 }
 
-// Parametric Heart Function
 function getHeartPosition(t, scale = 0.35) {
     const x = 16 * Math.pow(Math.sin(t), 3);
     const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
@@ -135,19 +135,15 @@ async function init() {
         state.finalPhrase = data.finalPhrase;
     } catch (error) {
         console.warn("Could not load messages. Using dummy data.", error);
-        state.messages = [
-            {name: "Sandra", text: "Mensaje de prueba", tone: "fuerza"},
-        ];
+        state.messages = [{name: "Sandra", text: "Mensaje de prueba", tone: "fuerza"}];
     }
 
     const messageCount = state.messages.length;
 
     // 2. Setup Particles
-    // We iterate enough times to cover messages + fillers
     for (let i = 0; i < TOTAL_PARTICLES; i++) {
         
-        // Random Sphere Distribution (Start Position)
-        // Bring them a bit closer initially for better presence
+        // Random Sphere Distribution
         const r = 10 + Math.random() * 20; 
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
@@ -156,7 +152,6 @@ async function init() {
         const sy = r * Math.sin(phi) * Math.sin(theta);
         const sz = r * Math.cos(phi);
 
-        // --- Determine if Message or Background ---
         if (i < messageCount) {
             // MESSAGE STAR
             msgStartPositions.push(sx, sy, sz);
@@ -165,13 +160,11 @@ async function init() {
             // Target: Heart Outline
             const t = (i / messageCount) * Math.PI * 2;
             const vec = getHeartPosition(t);
-            // Slight jitter so they aren't perfectly on a line
             const tx = vec.x + (Math.random() - 0.5) * 0.2;
             const ty = vec.y + (Math.random() - 0.5) * 0.2;
             const tz = vec.z;
             msgTargetPositions.push(tx, ty, tz);
 
-            // Color based on tone
             const msg = state.messages[i];
             const color = getColorForTone(msg.tone || 'cariño');
             msgColors.push(color.r, color.g, color.b);
@@ -183,26 +176,25 @@ async function init() {
 
             // Target: Cloud around heart
             const t = Math.random() * Math.PI * 2;
-            const vec = getHeartPosition(t, 0.4 + Math.random() * 0.3); // Bigger spread
+            const vec = getHeartPosition(t, 0.4 + Math.random() * 0.3);
             const tx = vec.x * 1.5 + (Math.random() - 0.5) * 15;
             const ty = vec.y * 1.5 + (Math.random() - 0.5) * 15;
             const tz = (Math.random() - 0.5) * 20;
             bgTargetPositions.push(tx, ty, tz);
 
-            // Color: Blue/White background
             const color = new THREE.Color();
             color.setHSL(0.6, 0.2, 0.6 + Math.random() * 0.4); 
             bgColors.push(color.r, color.g, color.b);
         }
     }
 
-    // --- Create Message Particles System ---
+    // Interactive System
     msgGeometry = new THREE.BufferGeometry();
     msgGeometry.setAttribute('position', new THREE.Float32BufferAttribute(msgPositions, 3));
     msgGeometry.setAttribute('color', new THREE.Float32BufferAttribute(msgColors, 3));
 
     const msgMaterial = new THREE.PointsMaterial({
-        size: 3.0, // Increased size for interaction visibility
+        size: 3.5, 
         vertexColors: true,
         map: createMessageStarTexture(),
         transparent: true,
@@ -214,13 +206,13 @@ async function init() {
     msgParticles = new THREE.Points(msgGeometry, msgMaterial);
     scene.add(msgParticles);
 
-    // --- Create Background Particles System ---
+    // Decorative System
     bgGeometry = new THREE.BufferGeometry();
     bgGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bgPositions, 3));
     bgGeometry.setAttribute('color', new THREE.Float32BufferAttribute(bgColors, 3));
 
     const bgMaterial = new THREE.PointsMaterial({
-        size: 0.8, // Small size for decoration
+        size: 0.8,
         vertexColors: true,
         map: createBgStarTexture(),
         transparent: true,
@@ -232,35 +224,45 @@ async function init() {
     bgParticles = new THREE.Points(bgGeometry, bgMaterial);
     scene.add(bgParticles);
 
-    // 3. Highlight Sphere
+    // 3. Highlight Sphere (Selected)
     const sphereGeo = new THREE.SphereGeometry(1.0, 16, 16);
     const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     highlightSphere = new THREE.Mesh(sphereGeo, sphereMat);
     highlightSphere.visible = false;
     scene.add(highlightSphere);
-    
     const light = new THREE.PointLight(0xffffff, 2, 10);
     highlightSphere.add(light);
 
-    // 4. Event Listeners
+    // 4. Hover Glow (Visual Feedback)
+    const hoverTexture = createMessageStarTexture();
+    const hoverMat = new THREE.SpriteMaterial({ 
+        map: hoverTexture, 
+        color: 0xffffff, 
+        transparent: true, 
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+    });
+    hoverStar = new THREE.Sprite(hoverMat);
+    hoverStar.scale.set(3, 3, 1);
+    hoverStar.visible = false;
+    scene.add(hoverStar);
+
+    // 5. Events
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('click', onClick);
     dom.btnOpen.addEventListener('click', openSky);
     dom.btnClose.addEventListener('click', closeMessage);
-    
-    // Navigation Listeners
     dom.btnNext.addEventListener('click', onNext);
     dom.btnPrev.addEventListener('click', onPrev);
 
     animate();
 }
 
-// --- Interaction Logic ---
+// --- Logic ---
 
 function openSky() {
     state.isFormed = true;
-    
     dom.introPanel.classList.replace('visible', 'hidden');
     setTimeout(() => {
         dom.introPanel.style.display = 'none';
@@ -287,23 +289,17 @@ function onPrev() {
     navigateToMessage(prevIndex);
 }
 
-// Navigates and calculates 3D position manually since we don't have a raycast click
 function navigateToMessage(index) {
-    // Get target position for this index
     const ix = index * 3;
     const iy = index * 3 + 1;
     const iz = index * 3 + 2;
-    
-    // Position of the star when formed (heart shape)
     const pos = new THREE.Vector3(
         msgTargetPositions[ix],
         msgTargetPositions[iy],
         msgTargetPositions[iz]
     );
-
     showMessage(index, pos);
 }
-
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -316,16 +312,11 @@ function onPointerMove(event) {
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
-// Helper to update interaction state (cursor)
 function checkIntersection() {
     if (!state.isFormed || !msgParticles) return null;
-
     raycaster.setFromCamera(pointer, camera);
-    // Only raycast against MESSAGE particles
     const intersects = raycaster.intersectObject(msgParticles);
-    
     if (intersects.length > 0) {
-        // Find closest to camera
         intersects.sort((a, b) => a.distanceToRay - b.distanceToRay);
         return intersects[0];
     }
@@ -353,42 +344,67 @@ function showMessage(index, position) {
     dom.msgText.textContent = msg.text;
     dom.msgOverlay.classList.replace('hidden', 'visible');
     
-    // Update highlight position
     highlightSphere.position.copy(position);
     highlightSphere.visible = true;
+    
+    // Hide hover effect when selecting
+    hoverStar.visible = false;
 
     if (!state.openedIndices.has(index)) {
         state.openedIndices.add(index);
         state.openedCount++;
         
-        // Show final phrase after 10 messages
         if (state.openedCount === 10 && state.finalPhrase) {
             dom.footerText.textContent = state.finalPhrase;
-            dom.footerNotif.classList.replace('hidden', 'visible');
-            
-            // Subtle celebration effect
+            dom.footerNotif.classList.remove('hidden');
+            dom.footerNotif.classList.add('visible');
             msgParticles.material.size *= 1.1; 
         }
     }
 }
 
-// --- Animation Loop ---
+// --- Animation ---
 
 function animate() {
     requestAnimationFrame(animate);
-
     const time = Date.now() * 0.001;
     
-    // Check for hover to change cursor
+    // Interaction Check
     if (state.isFormed) {
         const hit = checkIntersection();
-        document.body.style.cursor = hit ? 'pointer' : 'default';
+        if (hit) {
+            document.body.style.cursor = 'pointer';
+            
+            // Move hover star to the intersection point (or particle position)
+            // Using hit.point is accurate to ray, but using particle position is more stable visually
+            // Let's grab exact particle position
+            const idx = hit.index * 3;
+            hoverStar.position.set(
+                msgGeometry.attributes.position.array[idx],
+                msgGeometry.attributes.position.array[idx + 1],
+                msgGeometry.attributes.position.array[idx + 2]
+            );
+            
+            // Pulse effect
+            const scale = 3 + Math.sin(time * 5) * 0.5;
+            hoverStar.scale.set(scale, scale, 1);
+            
+            // Only show if we aren't hovering the currently selected star (if overlay is open)
+            if (!highlightSphere.visible || highlightSphere.position.distanceTo(hoverStar.position) > 0.1) {
+                hoverStar.visible = true;
+            } else {
+                hoverStar.visible = false;
+            }
+            
+        } else {
+            document.body.style.cursor = 'default';
+            hoverStar.visible = false;
+        }
     }
 
     if (msgParticles && bgParticles) {
-        // --- Animate Message Particles ---
+        // Message Particles Update
         const msgPosAttr = msgGeometry.attributes.position;
-        // Slower rotation for organic feel
         msgParticles.rotation.y += 0.0005;
         
         for (let i = 0; i < msgPosAttr.count; i++) {
@@ -399,41 +415,33 @@ function animate() {
             let tx, ty, tz;
 
             if (state.isFormed) {
-                // Heart shape target
                 tx = msgTargetPositions[ix];
                 ty = msgTargetPositions[iy];
                 tz = msgTargetPositions[iz];
             } else {
-                // Initial Floating State
-                // Softer movements: slower time factor (0.3) and smaller amplitude (0.3)
-                // Offset by index to avoid blocky movement
                 const tOffset = i * 0.1; 
-                const floatScale = 0.3; 
-                
-                tx = msgStartPositions[ix] + Math.sin(time * 0.5 + tOffset) * floatScale;
-                ty = msgStartPositions[iy] + Math.cos(time * 0.3 + tOffset) * floatScale;
-                tz = msgStartPositions[iz] + Math.sin(time * 0.4 + tOffset) * floatScale;
+                const floatScale = 0.25; 
+                tx = msgStartPositions[ix] + Math.sin(time * 0.2 + tOffset) * floatScale;
+                ty = msgStartPositions[iy] + Math.cos(time * 0.15 + tOffset) * floatScale;
+                tz = msgStartPositions[iz] + Math.sin(time * 0.1 + tOffset) * floatScale;
             }
 
-            // Interpolation factor
-            // Slower transition (0.015) for more organic formation
-            const k = state.isFormed ? 0.015 : 0.05;
-            
+            const k = state.isFormed ? 0.006 : 0.05;
             msgPosAttr.array[ix] += (tx - msgPosAttr.array[ix]) * k;
             msgPosAttr.array[iy] += (ty - msgPosAttr.array[iy]) * k;
             msgPosAttr.array[iz] += (tz - msgPosAttr.array[iz]) * k;
         }
         msgPosAttr.needsUpdate = true;
 
-        // --- Animate Background Particles ---
+        // Background Particles Update
         const bgPosAttr = bgGeometry.attributes.position;
-        bgParticles.rotation.y += 0.0002; // Very slow rotation
+        bgParticles.rotation.y += 0.0002;
 
         for (let i = 0; i < bgPosAttr.count; i++) {
             const ix = i * 3;
             const iy = i * 3 + 1;
             const iz = i * 3 + 2;
-
+            
             let tx, ty, tz;
             if (state.isFormed) {
                 tx = bgTargetPositions[ix];
@@ -445,12 +453,10 @@ function animate() {
                 tz = bgStartPositions[iz];
             }
 
-            // Floating background
             const driftX = Math.sin(time * 0.1 + i) * 1.5;
             const driftY = Math.cos(time * 0.15 + i) * 1.5;
-
-            // Very slow follow
             const k = 0.01; 
+            
             bgPosAttr.array[ix] += (tx + driftX - bgPosAttr.array[ix]) * k;
             bgPosAttr.array[iy] += (ty + driftY - bgPosAttr.array[iy]) * k;
             bgPosAttr.array[iz] += (tz - bgPosAttr.array[iz]) * k;
@@ -461,5 +467,4 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Start
 init();
