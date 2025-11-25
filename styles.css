@@ -59,6 +59,9 @@ body {
     transition: opacity 0.6s ease, transform 0.6s ease;
     max-width: 90%;
     width: 400px;
+    /* Ensure content doesn't overflow drastically on small height screens */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Typography */
@@ -98,6 +101,7 @@ body {
     line-height: 1.6;
     color: #f1f5f9;
     white-space: pre-wrap; /* Preserve newlines from JSON */
+    text-align: left; /* Better readability for longer texts */
 }
 
 /* Buttons */
@@ -120,6 +124,7 @@ button:active {
     background: var(--accent-gradient);
     color: #0f172a;
     box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+    align-self: center;
 }
 
 .btn-primary:hover {
@@ -134,6 +139,7 @@ button:active {
     margin-top: 1.5rem;
     padding: 8px 24px;
     font-size: 0.9rem;
+    align-self: center;
 }
 
 .btn-secondary:hover {
@@ -164,12 +170,15 @@ button:active {
     align-items: center;
     background: rgba(2, 6, 23, 0.4); /* Slight darkening behind modal */
     transition: opacity 0.3s ease;
+    z-index: 20; /* Ensure overlay is above everything */
 }
 
 .scroll-content {
     max-height: 50vh;
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 10px;
+    margin-bottom: 10px;
+    text-align: left;
 }
 
 /* Custom Scrollbar */
@@ -185,38 +194,64 @@ button:active {
 .hint {
     position: absolute;
     bottom: 30px;
-    font-size: 0.85rem;
-    opacity: 0.7;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
     animation: pulse 3s infinite;
     pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .notification {
     position: absolute;
     bottom: 0;
     width: 100%;
-    padding: 1rem;
-    background: linear-gradient(to top, rgba(2,6,23,0.9), transparent);
+    padding: 1.5rem 1rem;
+    background: linear-gradient(to top, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.8) 50%, transparent 100%);
     text-align: center;
     pointer-events: none;
     transition: opacity 1s ease;
+    z-index: 15;
 }
 
 #footer-text {
     font-size: 1.1rem;
     color: #a78bfa;
     text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.5;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.8; }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 /* Mobile Adjustments */
 @media (max-width: 600px) {
     .title { font-size: 1.8rem; }
-    .panel, .card { width: 85%; padding: 1.5rem; }
-    #msg-name { font-size: 1.2rem; }
-    #msg-text { font-size: 0.95rem; }
+    
+    .panel, .card { 
+        width: 90%; 
+        padding: 1.5rem; 
+        max-height: 80vh; /* Prevent overflow on small screens */
+    }
+
+    .scroll-content {
+        max-height: 55vh; /* Allow more space for text on mobile */
+    }
+
+    #msg-name { 
+        font-size: 1.3rem; 
+    }
+    
+    #msg-text { 
+        font-size: 1.05rem; /* Larger text for readability */
+    }
+    
+    #footer-text {
+        font-size: 1rem;
+        padding-bottom: 10px; /* Safe area for some mobile browsers */
+    }
 }

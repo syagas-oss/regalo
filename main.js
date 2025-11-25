@@ -37,7 +37,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Raycaster for interaction
 const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.8; // Generous hit area
+raycaster.params.Points.threshold = 1.0; // Slightly larger for better mobile tap
 const pointer = new THREE.Vector2();
 
 // --- Objects ---
@@ -70,14 +70,14 @@ function createMessageStarTexture() {
     
     // Solid white core for visibility
     ctx.beginPath();
-    ctx.arc(32, 32, 14, 0, Math.PI * 2);
+    ctx.arc(32, 32, 12, 0, Math.PI * 2); // Slightly smaller core for elegance
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
     // Soft Glow
-    const gradient = ctx.createRadialGradient(32, 32, 14, 32, 32, 32);
+    const gradient = ctx.createRadialGradient(32, 32, 12, 32, 32, 32);
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
+    gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.5)');
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     
     ctx.fillStyle = gradient;
@@ -144,6 +144,7 @@ async function init() {
     for (let i = 0; i < TOTAL_PARTICLES; i++) {
         
         // Random Sphere Distribution (Start Position)
+        // Bring them a bit closer initially for better presence
         const r = 10 + Math.random() * 20; 
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
@@ -198,7 +199,7 @@ async function init() {
     msgGeometry.setAttribute('color', new THREE.Float32BufferAttribute(msgColors, 3));
 
     const msgMaterial = new THREE.PointsMaterial({
-        size: 2.5, // LARGE size for interaction
+        size: 3.0, // Increased size for interaction visibility
         vertexColors: true,
         map: createMessageStarTexture(),
         transparent: true,
@@ -229,7 +230,7 @@ async function init() {
     scene.add(bgParticles);
 
     // 3. Highlight Sphere
-    const sphereGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const sphereGeo = new THREE.SphereGeometry(1.0, 16, 16);
     const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     highlightSphere = new THREE.Mesh(sphereGeo, sphereMat);
     highlightSphere.visible = false;
@@ -285,6 +286,8 @@ function checkIntersection() {
     const intersects = raycaster.intersectObject(msgParticles);
     
     if (intersects.length > 0) {
+        // Find closest to camera
+        intersects.sort((a, b) => a.distanceToRay - b.distanceToRay);
         return intersects[0];
     }
     return null;
@@ -317,10 +320,13 @@ function showMessage(index, position) {
         state.openedIndices.add(index);
         state.openedCount++;
         
+        // Show final phrase after 10 messages
         if (state.openedCount === 10 && state.finalPhrase) {
             dom.footerText.textContent = state.finalPhrase;
             dom.footerNotif.classList.replace('hidden', 'visible');
-            msgParticles.material.size *= 1.2; 
+            
+            // Subtle celebration effect
+            msgParticles.material.size *= 1.1; 
         }
     }
 }
@@ -341,9 +347,9 @@ function animate() {
     if (msgParticles && bgParticles) {
         // --- Animate Message Particles ---
         const msgPosAttr = msgGeometry.attributes.position;
-        msgParticles.rotation.y += 0.0008;
+        // Slower rotation for organic feel
+        msgParticles.rotation.y += 0.0005;
         
-        // Gentle float or transition
         for (let i = 0; i < msgPosAttr.count; i++) {
             const ix = i * 3;
             const iy = i * 3 + 1;
@@ -352,16 +358,26 @@ function animate() {
             let tx, ty, tz;
 
             if (state.isFormed) {
+                // Heart shape target
                 tx = msgTargetPositions[ix];
                 ty = msgTargetPositions[iy];
                 tz = msgTargetPositions[iz];
             } else {
-                tx = msgStartPositions[ix] + Math.sin(time + i) * 0.5;
-                ty = msgStartPositions[iy] + Math.cos(time + i * 0.5) * 0.5;
-                tz = msgStartPositions[iz] + Math.sin(time * 0.5 + i) * 0.5;
+                // Initial Floating State
+                // Softer movements: slower time factor (0.3) and smaller amplitude (0.3)
+                // Offset by index to avoid blocky movement
+                const tOffset = i * 0.1; 
+                const floatScale = 0.3; 
+                
+                tx = msgStartPositions[ix] + Math.sin(time * 0.5 + tOffset) * floatScale;
+                ty = msgStartPositions[iy] + Math.cos(time * 0.3 + tOffset) * floatScale;
+                tz = msgStartPositions[iz] + Math.sin(time * 0.4 + tOffset) * floatScale;
             }
 
-            const k = state.isFormed ? 0.04 : 0.05;
+            // Interpolation factor
+            // Slower transition (0.015) for more organic formation
+            const k = state.isFormed ? 0.015 : 0.05;
+            
             msgPosAttr.array[ix] += (tx - msgPosAttr.array[ix]) * k;
             msgPosAttr.array[iy] += (ty - msgPosAttr.array[iy]) * k;
             msgPosAttr.array[iz] += (tz - msgPosAttr.array[iz]) * k;
@@ -370,7 +386,7 @@ function animate() {
 
         // --- Animate Background Particles ---
         const bgPosAttr = bgGeometry.attributes.position;
-        bgParticles.rotation.y += 0.0003; // Slower background rotation
+        bgParticles.rotation.y += 0.0002; // Very slow rotation
 
         for (let i = 0; i < bgPosAttr.count; i++) {
             const ix = i * 3;
@@ -388,12 +404,12 @@ function animate() {
                 tz = bgStartPositions[iz];
             }
 
-            // Just drift slowly + lerp to target
-            // Add a little wave motion
-            const driftX = Math.sin(time * 0.2 + i) * 2.0;
-            const driftY = Math.cos(time * 0.3 + i) * 2.0;
+            // Floating background
+            const driftX = Math.sin(time * 0.1 + i) * 1.5;
+            const driftY = Math.cos(time * 0.15 + i) * 1.5;
 
-            const k = 0.02; // Slower transition for background
+            // Very slow follow
+            const k = 0.01; 
             bgPosAttr.array[ix] += (tx + driftX - bgPosAttr.array[ix]) * k;
             bgPosAttr.array[iy] += (ty + driftY - bgPosAttr.array[iy]) * k;
             bgPosAttr.array[iz] += (tz - bgPosAttr.array[iz]) * k;
