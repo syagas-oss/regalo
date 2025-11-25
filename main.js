@@ -50,9 +50,10 @@ let msgGeometry, bgGeometry;
 let highlightSphere; // The selected star glow
 let hoverStar;       // The hover effect glow
 
-// Performance Check
+// Performance Check & Mobile Optimization
 const isMobile = window.innerWidth < 768;
-const TOTAL_PARTICLES = isMobile ? 1500 : 2500; // Reduce particles on mobile
+// Use fewer decorative particles on mobile to improve performance
+const BG_PARTICLE_COUNT = isMobile ? 1200 : 2500; 
 
 // Arrays 
 const msgPositions = [];
@@ -142,9 +143,8 @@ async function init() {
     const messageCount = state.messages.length;
 
     // 2. Setup Particles
-    for (let i = 0; i < TOTAL_PARTICLES; i++) {
-        
-        // Random Sphere Distribution
+    // First: Message Particles
+    for (let i = 0; i < messageCount; i++) {
         const r = 10 + Math.random() * 20; 
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
@@ -153,40 +153,46 @@ async function init() {
         const sy = r * Math.sin(phi) * Math.sin(theta);
         const sz = r * Math.cos(phi);
 
-        if (i < messageCount) {
-            // MESSAGE STAR
-            msgStartPositions.push(sx, sy, sz);
-            msgPositions.push(sx, sy, sz);
+        msgStartPositions.push(sx, sy, sz);
+        msgPositions.push(sx, sy, sz);
 
-            // Target: Heart Outline
-            const t = (i / messageCount) * Math.PI * 2;
-            const vec = getHeartPosition(t);
-            const tx = vec.x + (Math.random() - 0.5) * 0.2;
-            const ty = vec.y + (Math.random() - 0.5) * 0.2;
-            const tz = vec.z;
-            msgTargetPositions.push(tx, ty, tz);
+        // Target: Heart Outline
+        const t = (i / messageCount) * Math.PI * 2;
+        const vec = getHeartPosition(t);
+        const tx = vec.x + (Math.random() - 0.5) * 0.2;
+        const ty = vec.y + (Math.random() - 0.5) * 0.2;
+        const tz = vec.z;
+        msgTargetPositions.push(tx, ty, tz);
 
-            const msg = state.messages[i];
-            const color = getColorForTone(msg.tone || 'cariño');
-            msgColors.push(color.r, color.g, color.b);
+        const msg = state.messages[i];
+        const color = getColorForTone(msg.tone || 'cariño');
+        msgColors.push(color.r, color.g, color.b);
+    }
 
-        } else {
-            // BACKGROUND STAR
-            bgStartPositions.push(sx, sy, sz);
-            bgPositions.push(sx, sy, sz);
+    // Second: Background Particles (Count based on device)
+    for (let i = 0; i < BG_PARTICLE_COUNT; i++) {
+        const r = 10 + Math.random() * 20; 
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        const sx = r * Math.sin(phi) * Math.cos(theta);
+        const sy = r * Math.sin(phi) * Math.sin(theta);
+        const sz = r * Math.cos(phi);
 
-            // Target: Cloud around heart
-            const t = Math.random() * Math.PI * 2;
-            const vec = getHeartPosition(t, 0.4 + Math.random() * 0.3);
-            const tx = vec.x * 1.5 + (Math.random() - 0.5) * 15;
-            const ty = vec.y * 1.5 + (Math.random() - 0.5) * 15;
-            const tz = (Math.random() - 0.5) * 20;
-            bgTargetPositions.push(tx, ty, tz);
+        bgStartPositions.push(sx, sy, sz);
+        bgPositions.push(sx, sy, sz);
 
-            const color = new THREE.Color();
-            color.setHSL(0.6, 0.2, 0.6 + Math.random() * 0.4); 
-            bgColors.push(color.r, color.g, color.b);
-        }
+        // Target: Cloud around heart
+        const t = Math.random() * Math.PI * 2;
+        const vec = getHeartPosition(t, 0.4 + Math.random() * 0.3);
+        const tx = vec.x * 1.5 + (Math.random() - 0.5) * 15;
+        const ty = vec.y * 1.5 + (Math.random() - 0.5) * 15;
+        const tz = (Math.random() - 0.5) * 20;
+        bgTargetPositions.push(tx, ty, tz);
+
+        const color = new THREE.Color();
+        color.setHSL(0.6, 0.2, 0.6 + Math.random() * 0.4); 
+        bgColors.push(color.r, color.g, color.b);
     }
 
     // Interactive System
@@ -252,6 +258,18 @@ async function init() {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('click', onClick);
+    
+    // Keyboard events
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMessage();
+    });
+
+    // Backdrop click event
+    dom.msgOverlay.addEventListener('click', (e) => {
+        // If clicking the overlay background (not the card itself)
+        if (e.target === dom.msgOverlay) closeMessage();
+    });
+
     dom.btnOpen.addEventListener('click', openSky);
     dom.btnClose.addEventListener('click', closeMessage);
     dom.btnNext.addEventListener('click', onNext);
@@ -272,9 +290,11 @@ function openSky() {
 }
 
 function closeMessage() {
-    dom.msgOverlay.classList.replace('visible', 'hidden');
-    highlightSphere.visible = false;
-    state.currentMsgIndex = -1;
+    if (dom.msgOverlay.classList.contains('visible')) {
+        dom.msgOverlay.classList.replace('visible', 'hidden');
+        highlightSphere.visible = false;
+        state.currentMsgIndex = -1;
+    }
 }
 
 function onNext() {
@@ -359,6 +379,7 @@ function showMessage(index, position) {
             dom.footerText.textContent = state.finalPhrase;
             dom.footerNotif.classList.remove('hidden');
             dom.footerNotif.classList.add('visible');
+            // Subtle pop effect on stars when achievement unlocked
             msgParticles.material.size *= 1.1; 
         }
     }
@@ -376,9 +397,7 @@ function animate() {
         if (hit) {
             document.body.style.cursor = 'pointer';
             
-            // Move hover star to the intersection point (or particle position)
-            // Using hit.point is accurate to ray, but using particle position is more stable visually
-            // Let's grab exact particle position
+            // Move hover star to the exact particle position for stability
             const idx = hit.index * 3;
             hoverStar.position.set(
                 msgGeometry.attributes.position.array[idx],
@@ -386,11 +405,15 @@ function animate() {
                 msgGeometry.attributes.position.array[idx + 2]
             );
             
-            // Pulse effect
-            const scale = 3 + Math.sin(time * 5) * 0.5;
+            // Apply breathing scale from the main group so the highlight matches the heart beat
+            // The hoverStar isn't a child of msgParticles, so we manually scale it
+            // Or simpler: just let it sit there. The pulsing below handles visual feedback.
+            
+            // Hover Pulse effect
+            const scale = 3 + Math.sin(time * 10) * 0.5; // Faster pulse for hover
             hoverStar.scale.set(scale, scale, 1);
             
-            // Only show if we aren't hovering the currently selected star (if overlay is open)
+            // Only show if we aren't highlighting the selected star (if overlay is open)
             if (!highlightSphere.visible || highlightSphere.position.distanceTo(hoverStar.position) > 0.1) {
                 hoverStar.visible = true;
             } else {
@@ -401,6 +424,17 @@ function animate() {
             document.body.style.cursor = 'default';
             hoverStar.visible = false;
         }
+
+        // --- Heartbeat Animation ---
+        if (msgParticles) {
+            // Subtle breathing scale: 1 + 0.03 * sine wave
+            const beat = 1 + 0.03 * Math.sin(time * 0.8);
+            msgParticles.scale.set(beat, beat, beat);
+        }
+
+    } else {
+        // While not formed, reset scale
+        if (msgParticles) msgParticles.scale.set(1, 1, 1);
     }
 
     if (msgParticles && bgParticles) {
